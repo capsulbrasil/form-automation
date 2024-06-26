@@ -107,4 +107,3 @@ python automation.py
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
->>>>>>> b402010297ae4d6ca25e32a0b735374066f962d8
