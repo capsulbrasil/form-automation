@@ -1,7 +1,6 @@
-<<<<<<< HEAD
 # Python Script Documentation
 
-## This project automates web form submission using Selenium and multiple threads. It reads data from CSV files, fills in email and phone fields in a specific form, and submits the information. The project uses Firefox with GeckoDriver, manages multiple parallel executions for efficiency, and includes a stopwatch to monitor execution time. At the end, all processes are synchronized and the browser is closed.
+#### This project automates web form submission using Selenium and multiple threads. It reads data from CSV files, fills in email and phone fields in a specific form, and submits the information. The project uses Firefox with GeckoDriver, manages multiple parallel executions for efficiency, and includes a stopwatch to monitor execution time. At the end, all processes are synchronized and the browser is closed.
 
 ## Function Imports
 - `stopwatch` function from `function`
