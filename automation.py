@@ -1,7 +1,3 @@
-# function imports
-from function import stopwatch
-
-# lib imports
 import time
 import threading
 import pandas as pd
@@ -9,70 +5,75 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
 from webdriver_manager.firefox import GeckoDriverManager
+from function.stopWatch import stopWatch
 
-# automation with selenium
 def automation(df):
-    # Integrating drivers
+    """
+    Perform automation using Selenium to process a DataFrame.
+    
+    Args:
+    df (pd.DataFrame): DataFrame containing the data to be processed.
+    
+    This function iterates over the rows of the DataFrame, extracting the email and message
+    fields and inputs them into a web form. After submitting the form, it clears the input
+    fields before processing the next row.
+    """
     service = Service(GeckoDriverManager().install())
-    driver = webdriver.Firefox(service=service)  # Running on GeckoDriver (Firefox)
-    driver.get('https://renopele.fun/api/')  # Web page on which Selenium will operate
+    driver = webdriver.Firefox(service=service)
+    driver.get('https://renopele.fun/api/')
+    
+    email_xpath = '//*[@id="form-field-email"]'
+    message_xpath = '//*[@id="form-field-message"]'
+    submit_xpath = "//button[@class='elementor-button elementor-size-sm']/span/span[@class='elementor-button-text' and text()='Send']"
 
-    # Automation logic
     for index, row in df.iterrows():
-        # Capturing insights
         email = str(row.iloc[0])
         numero = row.iloc[1]
         
-        # Form input
-        driver.find_element(By.XPATH, '//*[@id="form-field-email"]').send_keys(email)  # Email
-        driver.find_element(By.XPATH, '//*[@id="form-field-message"]').send_keys(numero)  # Phone
+        driver.find_element(By.XPATH, email_xpath).send_keys(email)
+        driver.find_element(By.XPATH, message_xpath).send_keys(numero)
         
-        time.sleep(1)# Dramatic stop for click
+        time.sleep(1)
         
-        # Submit
-        xpath = "//button[@class='elementor-button elementor-size-sm']/span/span[@class='elementor-button-text' and text()='Send']"
-        button = driver.find_element(By.XPATH, xpath)
-        button.click()  # Click
+        driver.find_element(By.XPATH, submit_xpath).click()
         
-        time.sleep(1)# Dramatic stop to clear
+        time.sleep(1)
         
-        # Form cleaning
-        driver.find_element(By.XPATH, '//*[@id="form-field-email"]').clear()
-        driver.find_element(By.XPATH, '//*[@id="form-field-message"]').clear()
+        driver.find_element(By.XPATH, email_xpath).clear()
+        driver.find_element(By.XPATH, message_xpath).clear()
         
-        time.sleep(1)# Dramatic pause to input
-    driver.quit() # quit drivers
+        time.sleep(1)
+    
+    driver.quit()
 
-# Starting timer
-threadStopwatch = threading.Thread(target=stopwatch)
-threadStopwatch.daemon = True
-threadStopwatch.start()
+def start_thread():
+    """
+    Starts a series of threads to process the automation.
+    
+    This function reads multiple files into DataFrames and creates a thread
+    for each DataFrame to process them concurrently using the automation function.
+    """
+    thread_stopwatch = threading.Thread(target=stopWatch)
+    thread_stopwatch.daemon = True
+    thread_stopwatch.start()
 
-# Opening files - CSV or XLSX data
-df1 = pd.read_csv('data/form.csv')
-df2 = pd.read_csv('data/form.csv')
-df3 = pd.read_csv('data/form.csv')
-df4 = pd.read_csv('data/form.csv')
-df5 = pd.read_csv('data/form.csv')
+    file_paths = [
+        'data/LISTA01CSHB.xlsx',
+        'data/LISTA02CSHB.xlsx',
+        'data/LISTA03CSHB.xlsx',
+        'data/LISTA04CSHB.xlsx',
+        'data/LISTA05CSHB.xlsx'
+    ]
+    
+    dataframes = [pd.read_excel(path) for path in file_paths]
+    
+    threads = [threading.Thread(target=automation, args=(df,)) for df in dataframes]
+    
+    for thread in threads:
+        thread.start()
+    
+    for thread in threads:
+        thread.join()
 
-# Creating kernel for each process
-thread1 = threading.Thread(target=automation, args=(df1,))
-thread2 = threading.Thread(target=automation, args=(df2,))
-thread3 = threading.Thread(target=automation, args=(df3,))
-thread4 = threading.Thread(target=automation, args=(df4,))
-thread5 = threading.Thread(target=automation, args=(df5,))
-
-# Starting all threads - Ending threads
-thread1.start()
-thread2.start()
-thread3.start()
-thread4.start()
-thread5.start()
-#==============
-thread1.join()
-thread2.join()
-thread3.join()
-thread4.join()
-thread5.join()
-
-print("Automation completed")
+if __name__ == "__main__":
+    start_thread()
