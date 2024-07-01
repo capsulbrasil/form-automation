@@ -2,78 +2,75 @@ import time
 import threading
 import pandas as pd
 from selenium import webdriver
+from function.stopWatch import stopWatch
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
 from webdriver_manager.firefox import GeckoDriverManager
-from function.stopWatch import stopWatch
 
 def automation(df):
     """
-    Perform automation using Selenium to process a DataFrame.
+    Função de automação que utiliza Selenium para preencher e submeter um formulário web.
     
     Args:
-    df (pd.DataFrame): DataFrame containing the data to be processed.
-    
-    This function iterates over the rows of the DataFrame, extracting the email and message
-    fields and inputs them into a web form. After submitting the form, it clears the input
-    fields before processing the next row.
+    df (pd.DataFrame): DataFrame contendo os dados a serem inseridos no formulário.
     """
+    # Configurando o serviço do driver Firefox
     service = Service(GeckoDriverManager().install())
     driver = webdriver.Firefox(service=service)
-    driver.get('https://renopele.fun/api/')
-    
-    email_xpath = '//*[@id="form-field-email"]'
-    message_xpath = '//*[@id="form-field-message"]'
-    submit_xpath = "//button[@class='elementor-button elementor-size-sm']/span/span[@class='elementor-button-text' and text()='Send']"
+    driver.get('https://renopele.fun/api/')  # Página web para automação
 
+    # Lógica de automação
     for index, row in df.iterrows():
+        # Capturando os dados do DataFrame
         email = str(row.iloc[0])
         numero = row.iloc[1]
         
-        driver.find_element(By.XPATH, email_xpath).send_keys(email)
-        driver.find_element(By.XPATH, message_xpath).send_keys(numero)
+        # Preenchendo o formulário
+        driver.find_element(By.XPATH, '//*[@id="form-field-email"]').send_keys(email)  # Email
+        driver.find_element(By.XPATH, '//*[@id="form-field-message"]').send_keys(numero)  # Telefone
         
-        time.sleep(1)
+        time.sleep(1)  # Pausa para simular a interação do usuário
         
-        driver.find_element(By.XPATH, submit_xpath).click()
+        # Submetendo o formulário
+        xpath = "//button[@class='elementor-button elementor-size-sm']/span/span[@class='elementor-button-text' and text()='Send']"
+        button = driver.find_element(By.XPATH, xpath)
+        button.click()  # Clique para enviar
         
-        time.sleep(1)
+        time.sleep(1)  # Pausa para limpar o formulário
         
-        driver.find_element(By.XPATH, email_xpath).clear()
-        driver.find_element(By.XPATH, message_xpath).clear()
+        # Limpando o formulário
+        driver.find_element(By.XPATH, '//*[@id="form-field-email"]').clear()
+        driver.find_element(By.XPATH, '//*[@id="form-field-message"]').clear()
         
-        time.sleep(1)
+        time.sleep(1.5)  # Pausa para evitar sobrecarga no servidor
     
-    driver.quit()
+    driver.quit()  # Encerrando o driver
 
-def start_thread():
-    """
-    Starts a series of threads to process the automation.
-    
-    This function reads multiple files into DataFrames and creates a thread
-    for each DataFrame to process them concurrently using the automation function.
-    """
-    thread_stopwatch = threading.Thread(target=stopWatch)
-    thread_stopwatch.daemon = True
-    thread_stopwatch.start()
+# Iniciando o cronômetro
+threadStopwatch = threading.Thread(target=stopWatch)
+threadStopwatch.daemon = True
+threadStopwatch.start()
 
-    file_paths = [
-        'data/LISTA01CSHB.xlsx',
-        'data/LISTA02CSHB.xlsx',
-        'data/LISTA03CSHB.xlsx',
-        'data/LISTA04CSHB.xlsx',
-        'data/LISTA05CSHB.xlsx'
-    ]
-    
-    dataframes = [pd.read_excel(path) for path in file_paths]
-    
-    threads = [threading.Thread(target=automation, args=(df,)) for df in dataframes]
-    
-    for thread in threads:
-        thread.start()
-    
-    for thread in threads:
-        thread.join()
+# Abrindo arquivos de dados (CSV ou XLSX)
+df1 = pd.read_excel('data/LISTA01CSHB.xlsx')
+df2 = pd.read_excel('data/LISTA02CSHB.xlsx')
+df3 = pd.read_excel('data/LISTA03CSHB.xlsx')
+df4 = pd.read_excel('data/LISTA04CSHB.xlsx')
+df5 = pd.read_excel('data/LISTA05CSHB.xlsx')
+df6 = pd.read_excel('data/LISTA06CSHB.xlsx')
 
-if __name__ == "__main__":
-    start_thread()
+# Criando threads para cada processo de automação
+threads = [
+    threading.Thread(target=automation, args=(df,))
+    for df in [df1, df2, df3, df4, df5, df6]
+]
+
+# Iniciando todas as threads
+for thread in threads:
+    thread.start()
+
+# Esperando todas as threads terminarem
+for thread in threads:
+    thread.join()
+
+print("Automação concluída")

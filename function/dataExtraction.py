@@ -1,1 +1,0 @@
-# Monta operação para extrair oque não passo.
